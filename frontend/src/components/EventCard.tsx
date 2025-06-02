@@ -4,7 +4,6 @@ import { getImageUrl } from "../utils/api";
 
 const EventCard: React.FC<EventCardProps> = ({
   event,
-  token,
   currentUserId,
   onDelete,
   onEdit,

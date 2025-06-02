@@ -62,7 +62,6 @@ export interface EventListProps {
 
 export interface EventCardProps {
   event: Event;
-  token: string;
   currentUserId: number | null;
   onDelete: (eventId: number) => void;
   onEdit: (event: Event) => void;
@@ -74,13 +73,4 @@ export interface ApiEndpoints {
   SIGNUP: string;
   EVENTS: string;
   IMAGES: string;
-}
-
-// Environment variables
-export interface ImportMetaEnv {
-  readonly VITE_API_URL: string;
-}
-
-export interface ImportMeta {
-  readonly env: ImportMetaEnv;
 }

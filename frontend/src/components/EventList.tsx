@@ -357,7 +357,6 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
                 <EventCard
                   key={event.id}
                   event={event}
-                  token={token}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
                   onEdit={handleEdit}
