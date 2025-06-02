@@ -3,6 +3,7 @@ import type { EventListProps, Event, EventFormData } from "../types";
 import {
   getAllEvents,
   createEvent,
+  updateEvent,
   deleteEvent,
   decodeToken,
 } from "../utils/api";
@@ -14,6 +15,7 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [form, setForm] = useState<EventFormData>({
     title: "",
     description: "",
@@ -60,9 +62,15 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
     setError(null);
 
     try {
-      await createEvent(form, token);
+      if (editingEvent) {
+        // Update existing event
+        await updateEvent(editingEvent.id, form, token);
+      } else {
+        // Create new event
+        await createEvent(form, token);
+      }
 
-      // Reset form
+      // Reset form and editing state
       setForm({
         title: "",
         description: "",
@@ -70,6 +78,7 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
         date: "",
         image: null,
       });
+      setEditingEvent(null);
 
       // Reset file input
       const fileInput = document.querySelector(
@@ -82,9 +91,46 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
       // Reload events
       await loadEvents();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create event");
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Failed to ${editingEvent ? "update" : "create"} event`
+      );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (event: Event): void => {
+    setEditingEvent(event);
+    setForm({
+      title: event.title,
+      description: event.description,
+      address: event.address,
+      date: event.date,
+      image: null, // Will require new image upload
+    });
+
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEdit = (): void => {
+    setEditingEvent(null);
+    setForm({
+      title: "",
+      description: "",
+      address: "",
+      date: "",
+      image: null,
+    });
+
+    // Reset file input
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
     }
   };
 
@@ -145,11 +191,21 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
           </div>
         )}
 
-        {/* Create Event Form */}
+        {/* Create/Edit Event Form */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Create New Event
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {editingEvent ? "Edit Event" : "Create New Event"}
+            </h2>
+            {editingEvent && (
+              <button
+                onClick={handleCancelEdit}
+                className="text-gray-500 hover:text-gray-700 px-3 py-1 rounded text-sm transition-colors"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +290,7 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
                 htmlFor="image"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Event Image (optional)
+                Event Image {editingEvent ? "(upload new image)" : "(required)"}
               </label>
               <input
                 id="image"
@@ -244,6 +300,7 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
                   handleInputChange("image", e.target.files?.[0] || null)
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                required={!editingEvent}
                 disabled={isSubmitting}
               />
             </div>
@@ -253,7 +310,13 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
               disabled={isSubmitting}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors"
             >
-              {isSubmitting ? "Creating..." : "Create Event"}
+              {isSubmitting
+                ? editingEvent
+                  ? "Updating..."
+                  : "Creating..."
+                : editingEvent
+                ? "Update Event"
+                : "Create Event"}
             </button>
           </form>
         </div>
@@ -297,6 +360,7 @@ const EventList: React.FC<EventListProps> = ({ token, logout }) => {
                   token={token}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                 />
               ))}
             </div>

@@ -106,6 +106,36 @@ export const createEvent = async (
   return data;
 };
 
+export const updateEvent = async (
+  eventId: number,
+  eventData: EventFormData,
+  token: string
+): Promise<EventResponse> => {
+  const formData = new FormData();
+  formData.append("title", eventData.title);
+  formData.append("description", eventData.description);
+  formData.append("address", eventData.address);
+  formData.append("date", eventData.date);
+
+  if (eventData.image) {
+    formData.append("image", eventData.image);
+  }
+
+  const response = await fetch(getEventUrl(eventId), {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+
+  const data: EventResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to update event");
+  }
+
+  return data;
+};
+
 export const deleteEvent = async (
   eventId: number,
   token: string

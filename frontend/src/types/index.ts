@@ -65,6 +65,7 @@ export interface EventCardProps {
   token: string;
   currentUserId: number | null;
   onDelete: (eventId: number) => void;
+  onEdit: (event: Event) => void;
 }
 
 // API configuration

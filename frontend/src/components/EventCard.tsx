@@ -7,6 +7,7 @@ const EventCard: React.FC<EventCardProps> = ({
   token,
   currentUserId,
   onDelete,
+  onEdit,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -93,13 +94,21 @@ const EventCard: React.FC<EventCardProps> = ({
         </div>
 
         {isCreator && (
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-400 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
-          >
-            {isDeleting ? "Deleting..." : "Delete Event"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEdit(event)}
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+            >
+              Edit Event
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-red-400 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+            >
+              {isDeleting ? "Deleting..." : "Delete Event"}
+            </button>
+          </div>
         )}
       </div>
     </div>
