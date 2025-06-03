@@ -10,6 +10,9 @@ import type {
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+// console.log("🔍 API_URL:", API_URL);
+// console.log("🔍 VITE_API_URL:", import.meta.env.VITE_API_URL);
+
 export const API_ENDPOINTS: ApiEndpoints = {
   LOGIN: `${API_URL}/users/login`,
   SIGNUP: `${API_URL}/users/signup`,
