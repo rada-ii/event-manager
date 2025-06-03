@@ -14,5 +14,6 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "installCommand": "npm install --prefer-offline --no-audit --progress=false"
 }
