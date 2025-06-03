@@ -3,10 +3,7 @@
   "builds": [
     {
       "src": "src/app.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["database.sqlite", "public/**"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -14,13 +11,5 @@
       "src": "/(.*)",
       "dest": "/src/app.ts"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "src/app.ts": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
