@@ -53,6 +53,28 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/init", async (req, res) => {
+  try {
+    console.log("🔄 Manual database initialization requested");
+    await initializeDatabase();
+    console.log("✅ Manual database initialization successful");
+
+    res.json({
+      status: "OK",
+      message: "Database initialized successfully",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Manual database initialization failed:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Failed to initialize database",
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 // Root endpoint
 app.get("/", (req, res) => {
   res.json({
