@@ -118,17 +118,25 @@ app.use(
   }
 );
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📍 API URL: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-
-  // Initialize database
+// Initialize database before starting server
+async function startServer() {
   try {
-    initializeDatabase();
+    console.log("🔄 Initializing database...");
+    await initializeDatabase();
     console.log("✅ Database initialized successfully");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📍 API URL: http://localhost:${PORT}`);
+      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    });
   } catch (err) {
     console.error("❌ Failed to initialize database:", err);
     process.exit(1);
   }
-});
+}
+
+// Start the server
+startServer();
+
+export default app;

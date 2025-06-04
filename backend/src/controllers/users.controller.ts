@@ -36,7 +36,7 @@ export async function signup(
     }
 
     // Check if email already exists
-    const existingUser = findUserByEmail(email);
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       res.status(409).json({ error: "Email is already registered" });
       return;

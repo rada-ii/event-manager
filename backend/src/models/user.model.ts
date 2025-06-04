@@ -19,20 +19,16 @@ export async function createUser(
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Insert user
-    const stmt = db.prepare(
-      "INSERT INTO users (email, password) VALUES (?, ?)"
-    );
-    const result = stmt.run(email, hashedPassword);
+    const query =
+      "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email";
+    const result = await db.query(query, [email, hashedPassword]);
 
-    return {
-      id: result.lastInsertRowid as number,
-      email,
-    };
+    return result.rows[0] as Omit<User, "password">;
   } catch (error: any) {
     console.error("Error creating user:", error);
 
-    // Handle unique constraint violation
-    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+    // Handle unique constraint violation for PostgreSQL
+    if (error.code === "23505" && error.constraint === "users_email_key") {
       throw new Error("Email already exists");
     }
 
@@ -47,12 +43,14 @@ export async function verifyUserCredentials(
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
-    const user = stmt.get(email) as User | undefined;
+    const query = "SELECT * FROM users WHERE email = $1";
+    const result = await db.query(query, [email]);
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return null; // User not found
     }
+
+    const user = result.rows[0] as User;
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password!);
@@ -68,38 +66,43 @@ export async function verifyUserCredentials(
   }
 }
 
-export function findUserByEmail(email: string): User | null {
+export async function findUserByEmail(email: string): Promise<User | null> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT * FROM users WHERE email = ?");
-    const user = stmt.get(email) as User | undefined;
-    return user || null;
+    const query = "SELECT * FROM users WHERE email = $1";
+    const result = await db.query(query, [email]);
+    return result.rows.length > 0 ? (result.rows[0] as User) : null;
   } catch (error) {
     console.error("Error finding user:", error);
     throw new Error("Failed to find user");
   }
 }
 
-export function findUserById(id: number): Omit<User, "password"> | null {
+export async function findUserById(
+  id: number
+): Promise<Omit<User, "password"> | null> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT id, email FROM users WHERE id = ?");
-    const user = stmt.get(id) as Omit<User, "password"> | undefined;
-    return user || null;
+    const query = "SELECT id, email FROM users WHERE id = $1";
+    const result = await db.query(query, [id]);
+    return result.rows.length > 0
+      ? (result.rows[0] as Omit<User, "password">)
+      : null;
   } catch (error) {
     console.error("Error finding user by ID:", error);
     throw new Error("Failed to find user");
   }
 }
 
-export function getAllUsers(): Omit<User, "password">[] {
+export async function getAllUsers(): Promise<Omit<User, "password">[]> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT id, email FROM users ORDER BY id DESC");
-    return stmt.all() as Omit<User, "password">[];
+    const query = "SELECT id, email FROM users ORDER BY id DESC";
+    const result = await db.query(query);
+    return result.rows as Omit<User, "password">[];
   } catch (error) {
     console.error("Error getting all users:", error);
     throw new Error("Failed to get users");

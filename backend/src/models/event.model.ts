@@ -3,54 +3,57 @@ import fs from "fs";
 import path from "path";
 import { Event, CreateEventData, UpdateEventData } from "../types/index.js";
 
-export function createEvent(eventData: CreateEventData): Event {
+export async function createEvent(eventData: CreateEventData): Promise<Event> {
   const db = getDatabase();
   const { title, description, address, date, image, userId } = eventData;
 
   try {
-    const stmt = db.prepare(
-      "INSERT INTO events (title, description, address, date, image, user_id) VALUES (?, ?, ?, ?, ?, ?)"
-    );
-    const result = stmt.run(title, description, address, date, image, userId);
-
-    return {
-      id: result.lastInsertRowid as number,
+    const query = `
+      INSERT INTO events (title, description, address, date, image, user_id) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING *
+    `;
+    const result = await db.query(query, [
       title,
       description,
       address,
       date,
       image,
-      user_id: userId,
-    };
+      userId,
+    ]);
+
+    return result.rows[0] as Event;
   } catch (error) {
     console.error("Error creating event:", error);
     throw new Error("Failed to create event");
   }
 }
 
-export function updateEvent(
+export async function updateEvent(
   id: number,
   eventData: UpdateEventData
-): Event | null {
+): Promise<Event | null> {
   const db = getDatabase();
   const { title, description, address, date, image } = eventData;
 
   try {
-    const stmt = db.prepare(
-      "UPDATE events SET title = ?, description = ?, address = ?, date = ?, image = ? WHERE id = ?"
-    );
-    const result = stmt.run(title, description, address, date, image, id);
+    const query = `
+      UPDATE events 
+      SET title = $1, description = $2, address = $3, date = $4, image = $5 
+      WHERE id = $6 
+      RETURNING *
+    `;
+    const result = await db.query(query, [
+      title,
+      description,
+      address,
+      date,
+      image,
+      id,
+    ]);
 
-    if (result.changes > 0) {
-      return {
-        id,
-        title,
-        description,
-        address,
-        date,
-        image,
-        user_id: 0, // Will be filled by getEventById if needed
-      };
+    if (result.rows.length > 0) {
+      return result.rows[0] as Event;
     }
     return null;
   } catch (error) {
@@ -59,23 +62,23 @@ export function updateEvent(
   }
 }
 
-export function deleteEvent(id: number): boolean {
+export async function deleteEvent(id: number): Promise<boolean> {
   const db = getDatabase();
 
   console.log(`🗑️ Deleting event with ID: ${id}`);
 
   try {
     // First get the event to find the image filename
-    const event = getEventById(id);
+    const event = await getEventById(id);
     console.log(`📸 Event found:`, event);
 
     // Delete the event from database
-    const deleteEventStmt = db.prepare("DELETE FROM events WHERE id = ?");
-    const result = deleteEventStmt.run(id);
+    const query = "DELETE FROM events WHERE id = $1";
+    const result = await db.query(query, [id]);
     console.log(`🗄️ Database delete result:`, result);
 
     // If event was deleted and has an image, delete the image file
-    if (result.changes > 0 && event?.image) {
+    if (result.rowCount && result.rowCount > 0 && event?.image) {
       try {
         const imagePath = path.join(
           process.cwd(),
@@ -96,63 +99,68 @@ export function deleteEvent(id: number): boolean {
       }
     }
 
-    return result.changes > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   } catch (error) {
     console.error("Error deleting event:", error);
     throw new Error("Failed to delete event");
   }
 }
 
-export function getAllEvents(): Event[] {
+export async function getAllEvents(): Promise<Event[]> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT * FROM events ORDER BY id DESC");
-    return stmt.all() as Event[];
+    const query = "SELECT * FROM events ORDER BY id DESC";
+    const result = await db.query(query);
+    return result.rows as Event[];
   } catch (error) {
     console.error("Error getting all events:", error);
     throw new Error("Failed to get events");
   }
 }
 
-export function getEventById(id: number): Event | null {
+export async function getEventById(id: number): Promise<Event | null> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare("SELECT * FROM events WHERE id = ?");
-    const event = stmt.get(id) as Event | undefined;
-    return event || null;
+    const query = "SELECT * FROM events WHERE id = $1";
+    const result = await db.query(query, [id]);
+    return result.rows.length > 0 ? (result.rows[0] as Event) : null;
   } catch (error) {
     console.error("Error getting event by ID:", error);
     throw new Error("Failed to get event");
   }
 }
 
-export function getEventsByUserId(userId: number): Event[] {
+export async function getEventsByUserId(userId: number): Promise<Event[]> {
   const db = getDatabase();
 
   try {
-    const stmt = db.prepare(
-      "SELECT * FROM events WHERE user_id = ? ORDER BY id DESC"
-    );
-    return stmt.all(userId) as Event[];
+    const query = "SELECT * FROM events WHERE user_id = $1 ORDER BY id DESC";
+    const result = await db.query(query, [userId]);
+    return result.rows as Event[];
   } catch (error) {
     console.error("Error getting events by user ID:", error);
     throw new Error("Failed to get user events");
   }
 }
 
-export function searchEvents(query: string): Event[] {
+export async function searchEvents(query: string): Promise<Event[]> {
   const db = getDatabase();
 
   try {
     const searchTerm = `%${query}%`;
-    const stmt = db.prepare(`
+    const sqlQuery = `
       SELECT * FROM events 
-      WHERE title LIKE ? OR description LIKE ? OR address LIKE ?
+      WHERE title ILIKE $1 OR description ILIKE $2 OR address ILIKE $3
       ORDER BY id DESC
-    `);
-    return stmt.all(searchTerm, searchTerm, searchTerm) as Event[];
+    `;
+    const result = await db.query(sqlQuery, [
+      searchTerm,
+      searchTerm,
+      searchTerm,
+    ]);
+    return result.rows as Event[];
   } catch (error) {
     console.error("Error searching events:", error);
     throw new Error("Failed to search events");

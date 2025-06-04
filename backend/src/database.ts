@@ -2,7 +2,7 @@ import { Pool } from "pg";
 
 let pool: Pool | null = null;
 
-export function initializeDatabase(): Pool {
+export async function initializeDatabase(): Promise<Pool> {
   if (pool) {
     return pool;
   }
@@ -17,18 +17,17 @@ export function initializeDatabase(): Pool {
   });
 
   // Test konekcije
-  pool
-    .connect()
-    .then((client) => {
-      console.log("✅ PostgreSQL connected successfully");
-      client.release();
-    })
-    .catch((err) => {
-      console.error("❌ PostgreSQL connection failed:", err);
-    });
+  try {
+    const client = await pool.connect();
+    console.log("✅ PostgreSQL connected successfully");
+    client.release();
+  } catch (err) {
+    console.error("❌ PostgreSQL connection failed:", err);
+    throw err;
+  }
 
   // Kreiraj tabele
-  createTables();
+  await createTables();
 
   console.log("📊 Database initialization completed");
   return pool;

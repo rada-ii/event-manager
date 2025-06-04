@@ -17,7 +17,10 @@ interface AuthenticatedRequest extends Request {
   file?: Express.Multer.File;
 }
 
-export function create(req: AuthenticatedRequest, res: Response): void {
+export async function create(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
   try {
     const { title, description, address, date } = req.body;
     const image = req.file;
@@ -48,7 +51,7 @@ export function create(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
-    const event = createEvent({
+    const event = await createEvent({
       title: title.trim(),
       description: description.trim(),
       address: address.trim(),
@@ -67,7 +70,10 @@ export function create(req: AuthenticatedRequest, res: Response): void {
   }
 }
 
-export function edit(req: AuthenticatedRequest, res: Response): void {
+export async function edit(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
   try {
     const { id } = req.params;
     const { title, description, address, date } = req.body;
@@ -93,7 +99,7 @@ export function edit(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
-    const existingEvent = getEventById(Number(id));
+    const existingEvent = await getEventById(Number(id));
     if (!existingEvent) {
       res.status(404).json({ error: "Event not found" });
       return;
@@ -104,7 +110,7 @@ export function edit(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
-    const updatedEvent = updateEvent(Number(id), {
+    const updatedEvent = await updateEvent(Number(id), {
       title: title.trim(),
       description: description.trim(),
       address: address.trim(),
@@ -126,13 +132,16 @@ export function edit(req: AuthenticatedRequest, res: Response): void {
   }
 }
 
-export function deleteItem(req: AuthenticatedRequest, res: Response): void {
+export async function deleteItem(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
   try {
     const { id } = req.params;
 
     console.log("🗑️ Deleting event with ID:", id);
 
-    const event = getEventById(Number(id));
+    const event = await getEventById(Number(id));
     if (!event) {
       res.status(404).json({ error: "Event not found" });
       return;
@@ -143,7 +152,7 @@ export function deleteItem(req: AuthenticatedRequest, res: Response): void {
       return;
     }
 
-    const success = deleteEvent(Number(id));
+    const success = await deleteEvent(Number(id));
     if (success) {
       console.log("✅ Event deleted successfully");
       res.json({ message: "Event deleted successfully" });
@@ -158,10 +167,10 @@ export function deleteItem(req: AuthenticatedRequest, res: Response): void {
   }
 }
 
-export function getAll(req: Request, res: Response): void {
+export async function getAll(req: Request, res: Response): Promise<void> {
   try {
     console.log("📋 Getting all events");
-    const events = getAllEvents();
+    const events = await getAllEvents();
     console.log(`✅ Found ${events.length} events`);
     res.json({ events, count: events.length });
   } catch (error: any) {
@@ -172,12 +181,12 @@ export function getAll(req: Request, res: Response): void {
   }
 }
 
-export function getSingle(req: Request, res: Response): void {
+export async function getSingle(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     console.log("🔍 Getting event with ID:", id);
 
-    const event = getEventById(Number(id));
+    const event = await getEventById(Number(id));
 
     if (event) {
       console.log("✅ Event found:", event);
@@ -194,10 +203,13 @@ export function getSingle(req: Request, res: Response): void {
   }
 }
 
-export function getUserEvents(req: AuthenticatedRequest, res: Response): void {
+export async function getUserEvents(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
   try {
     console.log("👤 Getting events for user ID:", req.user.id);
-    const events = getEventsByUserId(req.user.id);
+    const events = await getEventsByUserId(req.user.id);
     console.log(`✅ Found ${events.length} events for user`);
     res.json({ events, count: events.length });
   } catch (error: any) {
