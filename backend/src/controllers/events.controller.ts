@@ -7,6 +7,7 @@ import {
   getEventById,
   getEventsByUserId,
 } from "../models/event.model.js";
+import { deleteCloudinaryImage } from "../middleware/upload.middleware.js";
 
 // Extend Request interface for authenticated requests
 interface AuthenticatedRequest extends Request {
@@ -14,7 +15,10 @@ interface AuthenticatedRequest extends Request {
     id: number;
     email: string;
   };
-  file?: Express.Multer.File;
+  file?: Express.Multer.File & {
+    path: string; // Cloudinary URL
+    filename: string; // Cloudinary public_id
+  };
 }
 
 export async function create(
@@ -30,7 +34,7 @@ export async function create(
       description,
       address,
       date,
-      image: image?.filename,
+      image: image?.path || "no image",
     });
 
     if (
@@ -56,7 +60,7 @@ export async function create(
       description: description.trim(),
       address: address.trim(),
       date,
-      image: image.filename,
+      image: image.path, // Cloudinary URL
       userId: req.user.id,
     });
 
@@ -81,16 +85,10 @@ export async function edit(
 
     console.log("✏️ Editing event with ID:", id);
 
-    if (
-      !title?.trim() ||
-      !description?.trim() ||
-      !address?.trim() ||
-      !date ||
-      !image
-    ) {
+    if (!title?.trim() || !description?.trim() || !address?.trim() || !date) {
       res
         .status(400)
-        .json({ error: "All fields are required including image" });
+        .json({ error: "Title, description, address and date are required" });
       return;
     }
 
@@ -110,12 +108,33 @@ export async function edit(
       return;
     }
 
+    // If new image is uploaded, delete old image from Cloudinary
+    let imageUrl = existingEvent.image;
+    if (image) {
+      imageUrl = image.path;
+
+      // Delete old image (extract public_id from URL)
+      if (
+        existingEvent.image &&
+        existingEvent.image.includes("cloudinary.com")
+      ) {
+        try {
+          const urlParts = existingEvent.image.split("/");
+          const publicIdWithExtension = urlParts[urlParts.length - 1];
+          const publicId = publicIdWithExtension.split(".")[0];
+          await deleteCloudinaryImage(`event-manager/${publicId}`);
+        } catch (error) {
+          console.error("Error deleting old image:", error);
+        }
+      }
+    }
+
     const updatedEvent = await updateEvent(Number(id), {
       title: title.trim(),
       description: description.trim(),
       address: address.trim(),
       date,
-      image: image.filename,
+      image: imageUrl || "default.jpg",
     });
 
     if (updatedEvent) {
@@ -150,6 +169,18 @@ export async function deleteItem(
     if (event.user_id !== req.user.id) {
       res.status(403).json({ error: "You can only delete your own events" });
       return;
+    }
+
+    // Delete image from Cloudinary before deleting event
+    if (event.image && event.image.includes("cloudinary.com")) {
+      try {
+        const urlParts = event.image.split("/");
+        const publicIdWithExtension = urlParts[urlParts.length - 1];
+        const publicId = publicIdWithExtension.split(".")[0];
+        await deleteCloudinaryImage(`event-manager/${publicId}`);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
     }
 
     const success = await deleteEvent(Number(id));
