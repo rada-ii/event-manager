@@ -21,8 +21,15 @@ export const API_ENDPOINTS: ApiEndpoints = {
 };
 
 // Helper functions
-export const getImageUrl = (imageName: string): string =>
-  `${API_ENDPOINTS.IMAGES}/${imageName}`;
+export const getImageUrl = (imageName: string): string => {
+  // Ako je Cloudinary URL (počinje sa http), vrati ga direktno
+  if (imageName.startsWith("http")) {
+    return imageName;
+  }
+
+  // Inače dodaj backend prefix za stare slike
+  return `${API_ENDPOINTS.IMAGES}/${imageName}`;
+};
 
 export const getEventUrl = (eventId: number, action: string = ""): string => {
   const base = `${API_ENDPOINTS.EVENTS}/${eventId}`;
