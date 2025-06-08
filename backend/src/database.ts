@@ -7,7 +7,6 @@ export async function initializeDatabase(): Promise<Pool> {
     return pool;
   }
 
-  // Kreiraj connection pool
   pool = new Pool({
     connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
     ssl:
@@ -16,7 +15,7 @@ export async function initializeDatabase(): Promise<Pool> {
         : false,
   });
 
-  // Test konekcije
+
   try {
     const client = await pool.connect();
     console.log("✅ PostgreSQL connected successfully");
@@ -26,7 +25,7 @@ export async function initializeDatabase(): Promise<Pool> {
     throw err;
   }
 
-  // Kreiraj tabele
+  
   await createTables();
 
   console.log("📊 Database initialization completed");
