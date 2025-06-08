@@ -12,7 +12,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Text clamp utilities for better text truncation */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -56,7 +55,6 @@ body {
   animation: spin 1s linear infinite;
 }
 
-/* Focus styles for accessibility */
 input:focus,
 textarea:focus,
 button:focus {
@@ -64,7 +62,6 @@ button:focus {
   outline-offset: 2px;
 }
 
-/* Better file input styling */
 input[type="file"]::-webkit-file-upload-button {
   transition: all 0.2s ease-in-out;
 }
