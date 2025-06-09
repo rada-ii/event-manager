@@ -15,20 +15,18 @@ export async function initializeDatabase(): Promise<Pool> {
         : false,
   });
 
-
   try {
     const client = await pool.connect();
-    console.log("✅ PostgreSQL connected successfully");
+    console.log("PostgreSQL connected successfully");
     client.release();
   } catch (err) {
     console.error("❌ PostgreSQL connection failed:", err);
     throw err;
   }
 
-  
   await createTables();
 
-  console.log("📊 Database initialization completed");
+  console.log("Database initialization completed");
   return pool;
 }
 
@@ -62,7 +60,7 @@ async function createTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
     `);
 
-    console.log("📊 Database tables created/verified");
+    console.log("Database tables created/verified");
   } catch (error) {
     console.error("❌ Error creating tables:", error);
     throw error;
@@ -82,6 +80,6 @@ export async function closeDatabase(): Promise<void> {
   if (pool) {
     await pool.end();
     pool = null;
-    console.log("🔒 Database connection closed");
+    console.log("Database connection closed");
   }
 }

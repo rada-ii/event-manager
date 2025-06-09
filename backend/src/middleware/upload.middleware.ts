@@ -99,7 +99,7 @@ export const deleteCloudinaryImage = async (
   try {
     if (publicId && publicId !== "default.jpg") {
       await cloudinary.uploader.destroy(publicId);
-      console.log(`✅ Deleted image from Cloudinary: ${publicId}`);
+      console.log(`Deleted image from Cloudinary: ${publicId}`);
     }
   } catch (error) {
     console.error(

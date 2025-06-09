@@ -47,9 +47,9 @@ app.use("/events", eventsRoutes);
 // Admin endpoint to view all users
 app.get("/admin/users", async (req, res) => {
   try {
-    console.log("🔍 Getting all users from database");
+    console.log("Getting all users from database");
     const users = await getAllUsers();
-    console.log(`✅ Found ${users.length} users`);
+    console.log(`Found ${users.length} users`);
     res.json({
       users,
       count: users.length,
@@ -76,9 +76,9 @@ app.get("/health", (req, res) => {
 
 app.get("/init", async (req, res) => {
   try {
-    console.log("🔄 Manual database initialization requested");
+    console.log("Manual database initialization requested");
     await initializeDatabase();
-    console.log("✅ Manual database initialization successful");
+    console.log("Manual database initialization successful");
 
     res.json({
       status: "OK",
@@ -105,14 +105,14 @@ app.get("/", (req, res) => {
       health: "/health",
       users: "/users",
       events: "/events",
-      admin: "/admin/users", // Dodato
+      admin: "/admin/users",
     },
   });
 });
 
 // 404 handler
 app.use("*", (req, res) => {
-  console.log(`❌ Route not found: ${req.method} ${req.originalUrl}`);
+  console.log(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     message: "Route not found",
     path: req.originalUrl,
@@ -143,15 +143,15 @@ app.use(
 // Initialize database before starting server
 async function startServer() {
   try {
-    console.log("🔄 Initializing database...");
+    console.log("Initializing database...");
     await initializeDatabase();
-    console.log("✅ Database initialized successfully");
+    console.log("Database initialized successfully");
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📍 API URL: http://localhost:${PORT}`);
-      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-      console.log(`👥 Admin users: http://localhost:${PORT}/admin/users`);
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`API URL: http://localhost:${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
+      console.log(`Admin users: http://localhost:${PORT}/admin/users`);
     });
   } catch (err) {
     console.error("❌ Failed to initialize database:", err);

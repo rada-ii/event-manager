@@ -65,17 +65,17 @@ export async function updateEvent(
 export async function deleteEvent(id: number): Promise<boolean> {
   const db = getDatabase();
 
-  console.log(`🗑️ Deleting event with ID: ${id}`);
+  console.log(`Deleting event with ID: ${id}`);
 
   try {
     // First get the event to find the image filename
     const event = await getEventById(id);
-    console.log(`📸 Event found:`, event);
+    console.log(`Event found:`, event);
 
     // Delete the event from database
     const query = "DELETE FROM events WHERE id = $1";
     const result = await db.query(query, [id]);
-    console.log(`🗄️ Database delete result:`, result);
+    console.log(`Database delete result:`, result);
 
     // If event was deleted and has an image, delete the image file
     if (result.rowCount && result.rowCount > 0 && event?.image) {
@@ -86,13 +86,13 @@ export async function deleteEvent(id: number): Promise<boolean> {
           "images",
           event.image
         );
-        console.log(`🖼️ Trying to delete image at: ${imagePath}`);
+        console.log(`Trying to delete image at: ${imagePath}`);
 
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
-          console.log(`✅ Successfully deleted image: ${event.image}`);
+          console.log(`Successfully deleted image: ${event.image}`);
         } else {
-          console.log(`❌ Image file not found: ${imagePath}`);
+          console.log(`Image file not found: ${imagePath}`);
         }
       } catch (error) {
         console.error(`💥 Failed to delete image ${event.image}:`, error);

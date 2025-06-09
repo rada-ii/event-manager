@@ -29,7 +29,7 @@ export async function create(
     const { title, description, address, date } = req.body;
     const image = req.file;
 
-    console.log("📝 Creating event with data:", {
+    console.log("Creating event with data:", {
       title,
       description,
       address,
@@ -64,7 +64,7 @@ export async function create(
       userId: req.user.id,
     });
 
-    console.log("✅ Event created successfully:", event);
+    console.log("Event created successfully:", event);
     res.status(201).json({ message: "Event created successfully", event });
   } catch (error: any) {
     console.error("❌ Create event error:", error);
@@ -83,7 +83,7 @@ export async function edit(
     const { title, description, address, date } = req.body;
     const image = req.file;
 
-    console.log("✏️ Editing event with ID:", id);
+    console.log("Editing event with ID:", id);
 
     if (!title?.trim() || !description?.trim() || !address?.trim() || !date) {
       res
@@ -138,7 +138,7 @@ export async function edit(
     });
 
     if (updatedEvent) {
-      console.log("✅ Event updated successfully:", updatedEvent);
+      console.log("Event updated successfully:", updatedEvent);
       res.json({ message: "Event updated successfully", event: updatedEvent });
     } else {
       res.status(500).json({ error: "Failed to update event" });
@@ -158,7 +158,7 @@ export async function deleteItem(
   try {
     const { id } = req.params;
 
-    console.log("🗑️ Deleting event with ID:", id);
+    console.log("Deleting event with ID:", id);
 
     const event = await getEventById(Number(id));
     if (!event) {
@@ -185,7 +185,7 @@ export async function deleteItem(
 
     const success = await deleteEvent(Number(id));
     if (success) {
-      console.log("✅ Event deleted successfully");
+      console.log("Event deleted successfully");
       res.json({ message: "Event deleted successfully" });
     } else {
       res.status(500).json({ error: "Failed to delete event" });
@@ -200,9 +200,9 @@ export async function deleteItem(
 
 export async function getAll(req: Request, res: Response): Promise<void> {
   try {
-    console.log("📋 Getting all events");
+    console.log("Getting all events");
     const events = await getAllEvents();
-    console.log(`✅ Found ${events.length} events`);
+    console.log(`Found ${events.length} events`);
     res.json({ events, count: events.length });
   } catch (error: any) {
     console.error("❌ Get all events error:", error);
@@ -215,15 +215,15 @@ export async function getAll(req: Request, res: Response): Promise<void> {
 export async function getSingle(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    console.log("🔍 Getting event with ID:", id);
+    console.log("Getting event with ID:", id);
 
     const event = await getEventById(Number(id));
 
     if (event) {
-      console.log("✅ Event found:", event);
+      console.log("Event found:", event);
       res.json({ event });
     } else {
-      console.log("❌ Event not found");
+      console.log("Event not found");
       res.status(404).json({ error: "Event not found" });
     }
   } catch (error: any) {
@@ -239,9 +239,9 @@ export async function getUserEvents(
   res: Response
 ): Promise<void> {
   try {
-    console.log("👤 Getting events for user ID:", req.user.id);
+    console.log("Getting events for user ID:", req.user.id);
     const events = await getEventsByUserId(req.user.id);
-    console.log(`✅ Found ${events.length} events for user`);
+    console.log(`Found ${events.length} events for user`);
     res.json({ events, count: events.length });
   } catch (error: any) {
     console.error("❌ Get user events error:", error);
